@@ -6,7 +6,7 @@
 
 ![EG i-SCHOOL HUB](https://img.shields.io/badge/EG%20i--SCHOOL%20HUB-1B3A5C?style=for-the-badge)
 ![EG Global Ltd](https://img.shields.io/badge/EG%20Global%20Ltd-B8860B?style=for-the-badge)
-![AI Powered](https://img.shields.io/badge/Powered%20by%20AI-4CAF50?style=for-the-badge)
+![Powered by Gemini](https://img.shields.io/badge/Powered%20by%20Gemini-4285F4?style=for-the-badge)
 
 </div>
 
@@ -15,8 +15,6 @@
 ## ✦ ما هي حكّاي؟
 
 > *"في دولة 89% من سكانها لا يتحدثون العربية — حكّاي المنصة الوحيدة التي تجمع بين خبرة معلمة فصحى متخصصة وذكاء اصطناعي متقدم، لتُمكّن المؤسسات الثقافية من إنتاج محتوى إبداعي عربي أصيل لجمهور متعدد اللغات."*
-
-**حكّاي** هي منصة ذكاء اصطناعي تُمكّن المؤسسات الثقافية والتعليمية في الإمارات من إنتاج محتوى إبداعي بالعربية الفصحى الأصيلة — بأيدي موظفين لا يتقنون العربية.
 
 ---
 
@@ -30,7 +28,7 @@
 
 ---
 
-## ✦ الحل — ثلاثة أنواع من المحتوى
+## ✦ ثلاثة أنواع من المحتوى
 
 | النوع | الوصف |
 |---|---|
@@ -48,33 +46,34 @@
 
 ## ✦ القاعدة المعرفية اللغوية
 
-حكّاي مدعومة بقواعد نحوية وصرفية مستخرجة من:
+مدعومة بقواعد نحوية وصرفية مستخرجة من:
 > **ملخص قواعد اللغة العربية — فؤاد نعمة (الطبعة التاسعة عشرة)**
 
-راجع ملف [`hakkay_knowledge_base.json`](./hakkay_knowledge_base.json) للاطلاع على القواعد الكاملة.
+راجع ملف [`hakkay_knowledge_base.json`](./hakkay_knowledge_base.json)
 
 ---
 
-## ✦ كيفية التشغيل
+## ✦ كيفية الاستخدام
 
-### الديمو المباشر
-افتح ملف `index.html` في المتصفح وأدخل Anthropic API Key الخاص بك.
+### الديمو المباشر — بدون تثبيت
+**١.** افتح الرابط: [egbusinesshub.github.io/hakkay](https://egbusinesshub.github.io/hakkay)
 
-### للمطورين — React Version
+**٢.** أدخل **Google Gemini API Key** في الحقل
+> احصل على Key مجاني من: [aistudio.google.com](https://aistudio.google.com)
+
+**٣.** اكتب موضوعاً ثقافياً واضغط **توليد المحتوى**
+
+> ⚠️ الـ API Key لا يُحفظ في الكود ولا على GitHub — يُستخدم فقط وقت الجلسة
+
+---
+
+## ✦ للمطورين — React Version
+
 ```bash
-# 1. انسخ المشروع
-git clone https://github.com/your-username/hakkay.git
+git clone https://github.com/egbusinesshub/hakkay.git
 cd hakkay
-
-# 2. أنشئ ملف .env
-echo "REACT_APP_ANTHROPIC_KEY=sk-ant-your-key" > .env
-
-# 3. شغّل المشروع
-npm install
-npm start
+# افتح hakkay_demo.jsx في بيئة React
 ```
-
-> ⚠️ **تنبيه:** لا تشارك API Key خاصتك علناً أو تدمجه في الكود المرفوع.
 
 ---
 
@@ -82,7 +81,7 @@ npm start
 
 ```
 hakkay/
-├── index.html                  ← الديمو الشغّال مباشرة في المتصفح
+├── index.html                  ← الديمو الشغّال على المتصفح مباشرة
 ├── hakkay_demo.jsx             ← React Component الكامل
 ├── hakkay_knowledge_base.json  ← قاعدة القواعد النحوية والصرفية
 └── README.md                   ← هذا الملف
@@ -92,12 +91,10 @@ hakkay/
 
 ## ✦ عن المشروع
 
-**حكّاي** مشروع ناشئ ضمن مبادرة **EG i-SCHOOL HUB**
-بقلم وتصميم: **EG — Founder & CEO, EG Global Ltd**
-
 | | |
 |---|---|
 | 🏢 الشركة | EG Global Ltd — Sharjah Free Zone, UAE |
+| 🎓 المبادرة | EG i-SCHOOL HUB |
 | 📧 التواصل | ischool@egworldwide.ae |
 | 🌐 الموقع | egworldwide.ae |
 
@@ -113,6 +110,7 @@ hakkay/
 <div align="center">
 
 *حكّاي — ذكاء اصطناعي بقلب عربي أصيل*
+
 **© 2026 EG Global Ltd · EG i-SCHOOL HUB**
 
 </div>
