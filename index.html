@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>حكّاي — Arabic Creative AI</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,sans-serif;background:#FAF8F3;direction:ltr}
+    .header{background:#1B3A5C;padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+    .logo{color:#B8860B;font-size:2rem;font-family:Georgia,serif;letter-spacing:.05em}
+    .logo-sub{color:#90AABF;font-size:.68rem;letter-spacing:.25em;text-transform:uppercase;margin-top:.1rem}
+    .tagline{color:#F5E7B8;font-size:.72rem;text-align:right;direction:rtl;line-height:1.6;max-width:280px}
+    .card{background:#fff;border-radius:14px;border:.5px solid #DDD8CE;padding:1.5rem;margin:1.25rem}
+    label.step{display:block;font-size:.78rem;font-weight:600;color:#1B3A5C;letter-spacing:.08em;margin-bottom:.5rem}
+    .input-row{display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem}
+    input#topic{flex:1;padding:.7rem 1rem;border:1.5px solid #E0D9CC;border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;color:#222}
+    input#topic:focus{border-color:#B8860B}
+    #clear-btn{flex-shrink:0;width:38px;height:38px;border-radius:8px;border:1.5px solid #E0D9CC;background:#fff;cursor:pointer;font-size:1rem;color:#999;display:flex;align-items:center;justify-content:center;transition:all .15s}
+    #clear-btn:hover{border-color:#B8860B;color:#B8860B;background:#FBF3DC}
+    .types{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.25rem}
+    .type-btn{flex:1 1 110px;padding:.7rem .5rem;border-radius:8px;cursor:pointer;border:1.5px solid #E0D9CC;background:#fff;transition:all .15s;text-align:center}
+    .type-btn.active{border:2px solid #B8860B;background:#FBF3DC}
+    .type-ar{font-size:.9rem;font-weight:600;color:#1B3A5C;direction:rtl}
+    .type-btn.active .type-ar{color:#B8860B}
+    .type-en{font-size:.7rem;color:#888;margin-top:.15rem}
+    .langs{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.5rem}
+    .lang-btn{padding:.3rem .85rem;border-radius:20px;cursor:pointer;font-size:.8rem;border:1px solid #CCC;background:#fff;color:#555;transition:all .15s}
+    .lang-btn.active{background:#1B3A5C;color:#fff;border-color:#1B3A5C}
+    .hint{font-size:.7rem;color:#B8860B;margin-top:.35rem;min-height:1rem}
+    #gen-btn{width:100%;padding:.9rem;border-radius:8px;cursor:pointer;background:#1B3A5C;color:#fff;font-size:1rem;font-weight:600;border:none;letter-spacing:.05em;transition:background .2s}
+    #gen-btn:disabled{background:#BCC4CC;cursor:not-allowed}
+    .divider{display:flex;align-items:center;gap:1rem;margin:1.25rem}
+    .divider-line{flex:1;height:1px;background:#B8860B;opacity:.35}
+    .divider-text{color:#B8860B;font-family:Georgia,serif;font-size:.95rem;white-space:nowrap}
+    .results{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin:0 1.25rem 1.25rem}
+    .arabic-panel{background:#1B3A5C;border-radius:12px;padding:1.5rem}
+    .panel-label{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;font-weight:600;color:#B8860B;margin-bottom:.9rem}
+    .arabic-text{color:#E8F0F8;direction:rtl;line-height:2.1;font-size:.95rem;font-family:Georgia,serif}
+    .explain-panel{background:#fff;border:1px solid rgba(184,134,11,.35);border-radius:12px;padding:1.5rem}
+    .explain-text{color:#2A2A2A;line-height:1.85;font-size:.9rem}
+    .watermark{text-align:center;color:#AAA;font-size:.68rem;padding:.5rem 1.25rem 1.25rem;letter-spacing:.1em}
+    .empty{text-align:center;padding:2rem 1.25rem}
+    .empty-icon{font-size:2.2rem;opacity:.3;margin-bottom:.6rem}
+    .empty-txt{font-size:.85rem;color:#AAA;direction:rtl}
+    .error-box{background:#FFF0F0;border:1px solid #F5B0B0;border-radius:8px;padding:.9rem;color:#B00;text-align:center;margin:0 1.25rem .75rem;direction:rtl;font-size:.88rem;display:none}
+    #loading-msg{text-align:center;padding:1.5rem;color:#1B3A5C;font-size:.9rem;direction:rtl;display:none}
+    @media(max-width:600px){.results{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">حكّـاي</div>
+    <div class="logo-sub">Hakkay · Arabic Creative AI</div>
+  </div>
+  <div class="tagline">
+    في دولة 89% من سكانها لا يتحدثون العربية —<br>
+    حكّاي المنصة الوحيدة التي تمنح مؤسساتها صوتاً عربياً أصيلاً
+  </div>
+</div>
+
+<div class="card">
+  <label class="step">١ — الموضوع الثقافي / Cultural Topic</label>
+  <div class="input-row">
+    <input id="topic" placeholder="e.g. The Dubai Creek · سوق الذهب · Le désert arabe" />
+    <button id="clear-btn" onclick="clearTopic()" title="مسح / Clear">✕</button>
+  </div>
+
+  <label class="step">٢ — نوع المحتوى / Content Type</label>
+  <div class="types">
+    <button class="type-btn active" data-id="story">
+      <div class="type-ar">قصة تراثية</div>
+      <div class="type-en">Heritage Story</div>
+    </button>
+    <button class="type-btn" data-id="podcast">
+      <div class="type-ar">سكريبت بودكاست</div>
+      <div class="type-en">Podcast Script</div>
+    </button>
+    <button class="type-btn" data-id="culture">
+      <div class="type-ar">وصف ثقافي</div>
+      <div class="type-en">Cultural Description</div>
+    </button>
+  </div>
+
+  <label class="step">٣ — لغة الشرح / Explanation Language</label>
+  <div class="langs">
+    <button class="lang-btn active" data-lang="English">English</button>
+    <button class="lang-btn" data-lang="French">French</button>
+    <button class="lang-btn" data-lang="Urdu">Urdu</button>
+    <button class="lang-btn" data-lang="Hindi">Hindi</button>
+    <button class="lang-btn" data-lang="Español">Español</button>
+    <button class="lang-btn" data-lang="Deutsch">Deutsch</button>
+    <button class="lang-btn" data-lang="中文">中文</button>
+    <button class="lang-btn" data-lang="Русский">Русский</button>
+  </div>
+  <div class="hint" id="hint"></div>
+  <button id="gen-btn" onclick="generate()">✦  توليد المحتوى  ·  Generate</button>
+</div>
+
+<div id="error-box" class="error-box"></div>
+<div id="loading-msg">⏳  جاري التوليد بالفصحى الأصيلة...</div>
+
+<div id="empty" class="empty">
+  <div class="empty-icon">✦</div>
+  <div class="empty-txt">أدخل موضوعاً ثقافياً واضغط توليد لترى السحر</div>
+</div>
+
+<div id="result-area" style="display:none">
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-text">✦ المحتوى المُولَّد ✦</div>
+    <div class="divider-line"></div>
+  </div>
+  <div class="results">
+    <div class="arabic-panel">
+      <div class="panel-label" id="type-label">العربية الفصحى</div>
+      <div class="arabic-text" id="arabic-out"></div>
+    </div>
+    <div class="explain-panel">
+      <div class="panel-label" id="lang-label">English — Cultural Context</div>
+      <div class="explain-text" id="explain-out"></div>
+    </div>
+  </div>
+  <div class="watermark">حكّاي · EG i-SCHOOL HUB · EG Global Ltd © 2026</div>
+</div>
+
+<script>
+// ========================================================
+// ضعي الـ API Key الخاص بك هنا
+const GEMINI_API_KEY = "AQ.Ab8RN6IVlJzJDl-dPZw14nhqNgayW8gLqr2Jg5G4oMuVFXrEww";
+// ========================================================
+
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+const SYSTEM = `أنتَ حكّاي — مساعد ذكاء اصطناعي متخصص في توليد المحتوى الإبداعي بالعربية الفصحى الأصيلة للمؤسسات الثقافية والتعليمية.
+
+قواعدك النحوية الأساسية (فؤاد نعمة - ملخص قواعد اللغة العربية):
+• الجملة الاسمية: مبتدأ مرفوع + خبر مرفوع — الذهبُ معدنٌ
+• الفعل يُفرَد دائماً مع الجمع — نجحَ الطلابُ
+• الفعل يُؤنَّث مع الفاعل المؤنث — نجحَتِ الطالبةُ
+• جمع غير العاقل يُعامَل مؤنثاً مفرداً — الجبالُ عاليةٌ
+• وظّف إنَّ للتوكيد، وليتَ للتمني، ولعلَّ للرجاء
+• الجملة الاسمية للثبات والديمومة — الفعلية للحركة والتجدد
+
+أجب بـ JSON صرف فقط بلا markdown:
+{"arabic_content":"...","cultural_explanation":"..."}`;
+
+const TYPE_INSTRUCTIONS = {
+  story:`اكتب قصة تراثية أدبية قصيرة متكاملة تحتوي على:
+- شخصية رئيسية باسم عربي ووصف لها
+- حدث درامي أو موقف إنساني مؤثر
+- بداية جاذبة، وسط، ونهاية واضحة
+- حوار مباشر بين الشخصيات
+- وصف حسي للمكان والزمان
+الأسلوب: سردي قصصي تراثي يشبه قصص ألف ليلة وليلة`,
+
+  podcast:`اكتب سكريبت بودكاست ثقافي منظم يحتوي على:
+- مقدمة إذاعية: (أيها المستمعون، أهلاً بكم في...)
+- فقرة رئيسية بمعلومات ثقافية بأسلوب حيوي
+- انتقالات واضحة: (ومن هنا ننتقل... / والجدير بالذكر...)
+- خاتمة تطرح سؤالاً للمستمع
+الأسلوب: إذاعي خطابي مباشر على الهواء`,
+
+  culture:`اكتب وصفاً ثقافياً أدبياً موثقاً يتضمن:
+- وصف حسي دقيق (الشكل، اللون، الصوت، الرائحة)
+- السياق التاريخي والحضاري
+- القيمة الرمزية والدلالة الثقافية
+- ربط الموروث بالحاضر
+الأسلوب: موسوعي أدبي رفيع`
+};
+
+const TYPE_LABELS = {
+  story:   "قصة تراثية ✦ Heritage Story",
+  podcast: "سكريبت بودكاست ✦ Podcast Script",
+  culture: "وصف ثقافي ✦ Cultural Description"
+};
+
+let currentType = "story";
+let currentLang = "English";
+let hasResult   = false;
+let isLoading   = false;
+
+const $ = id => document.getElementById(id);
+
+$("topic").addEventListener("keydown", e => { if(e.key==="Enter") generate(); });
+
+function clearTopic(){
+  $("topic").value = "";
+  $("topic").focus();
+  resetResult();
+}
+
+function resetResult(){
+  hasResult = false;
+  $("result-area").style.display = "none";
+  $("empty").style.display       = "block";
+  $("error-box").style.display   = "none";
+  $("hint").textContent          = "";
+}
+
+document.querySelectorAll(".type-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if(btn.dataset.id === currentType) return;
+    currentType = btn.dataset.id;
+    document.querySelectorAll(".type-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    clearTopic();
+  });
+});
+
+document.querySelectorAll(".lang-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentLang = btn.dataset.lang;
+    document.querySelectorAll(".lang-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    if(hasResult && $("topic").value.trim()) generate();
+  });
+});
+
+async function generate(){
+  const topic = $("topic").value.trim();
+  if(!topic || isLoading) return;
+
+  isLoading = true;
+  $("gen-btn").disabled    = true;
+  $("gen-btn").textContent = "⏳  جاري التوليد...";
+  $("error-box").style.display   = "none";
+  $("result-area").style.display = "none";
+  $("empty").style.display       = "none";
+  $("loading-msg").style.display = "block";
+  $("hint").textContent          = "";
+
+  const fullPrompt = `${SYSTEM}\n\nالموضوع: "${topic}"\n${TYPE_INSTRUCTIONS[currentType]}\nالشرح الثقافي: باللغة ${currentLang} في 80-100 كلمة.\nالمحتوى العربي: 150-180 كلمة.`;
+
+  try {
+    const res = await fetch(GEMINI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: fullPrompt }] }],
+        generationConfig: { temperature: 0.8, maxOutputTokens: 1500 }
+      })
+    });
+
+    const data = await res.json();
+    const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const clean = raw.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
+
+    $("arabic-out").textContent  = parsed.arabic_content;
+    $("explain-out").textContent = parsed.cultural_explanation;
+    $("type-label").textContent  = TYPE_LABELS[currentType];
+    $("lang-label").textContent  = currentLang + " — Cultural Context";
+    $("result-area").style.display = "block";
+    $("hint").textContent = "✦ غيّري اللغة وسيُعاد التوليد تلقائياً";
+    hasResult = true;
+  } catch {
+    $("error-box").textContent   = "حدث خطأ في التوليد. تأكدي من صحة الـ API Key وحاولي مرة أخرى.";
+    $("error-box").style.display = "block";
+    $("empty").style.display     = "block";
+  } finally {
+    isLoading = false;
+    $("gen-btn").disabled    = false;
+    $("gen-btn").textContent = "✦  توليد المحتوى  ·  Generate";
+    $("loading-msg").style.display = "none";
+  }
+}
+</script>
+</body>
+</html>
