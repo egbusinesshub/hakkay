@@ -11,6 +11,11 @@
     .logo{color:#B8860B;font-size:2rem;font-family:Georgia,serif;letter-spacing:.05em}
     .logo-sub{color:#90AABF;font-size:.68rem;letter-spacing:.25em;text-transform:uppercase;margin-top:.1rem}
     .tagline{color:#F5E7B8;font-size:.72rem;text-align:right;direction:rtl;line-height:1.6;max-width:280px}
+    .api-bar{background:#FBF3DC;border-bottom:1px solid #E8D99A;padding:.75rem 1.5rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+    .api-bar label{font-size:.78rem;font-weight:600;color:#1B3A5C;white-space:nowrap}
+    .api-bar input{flex:1;min-width:200px;padding:.45rem .75rem;border:1.5px solid #E0D9CC;border-radius:6px;font-size:.85rem;font-family:monospace;outline:none}
+    .api-bar input:focus{border-color:#B8860B}
+    .api-note{font-size:.7rem;color:#888;white-space:nowrap}
     .card{background:#fff;border-radius:14px;border:.5px solid #DDD8CE;padding:1.5rem;margin:1.25rem}
     label.step{display:block;font-size:.78rem;font-weight:600;color:#1B3A5C;letter-spacing:.08em;margin-bottom:.5rem}
     .input-row{display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem}
@@ -59,6 +64,12 @@
     في دولة 89% من سكانها لا يتحدثون العربية —<br>
     حكّاي المنصة الوحيدة التي تمنح مؤسساتها صوتاً عربياً أصيلاً
   </div>
+</div>
+
+<div class="api-bar">
+  <label for="api-key">🔑 Anthropic API Key</label>
+  <input id="api-key" type="password" placeholder="sk-ant-..." />
+  <span class="api-note">مطلوب للتشغيل — لا يُحفظ ولا يُرسل لأي جهة</span>
 </div>
 
 <div class="card">
@@ -127,13 +138,6 @@
 </div>
 
 <script>
-// ========================================================
-// ضعي الـ API Key الخاص بك هنا
-const GEMINI_API_KEY = "AQ.Ab8RN6LG9jNRBqfBIYCCzoVS6gcaiqiAuaUBNsQVGkMjpZ9BZQ";
-// ========================================================
-
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-
 const SYSTEM = `أنتَ حكّاي — مساعد ذكاء اصطناعي متخصص في توليد المحتوى الإبداعي بالعربية الفصحى الأصيلة للمؤسسات الثقافية والتعليمية.
 
 قواعدك النحوية الأساسية (فؤاد نعمة - ملخص قواعد اللغة العربية):
@@ -220,34 +224,42 @@ document.querySelectorAll(".lang-btn").forEach(btn => {
 });
 
 async function generate(){
-  const topic = $("topic").value.trim();
+  const topic  = $("topic").value.trim();
+  const apiKey = $("api-key").value.trim();
   if(!topic || isLoading) return;
+  if(!apiKey){ alert("يرجى إدخال Anthropic API Key أولاً"); return; }
 
   isLoading = true;
-  $("gen-btn").disabled    = true;
-  $("gen-btn").textContent = "⏳  جاري التوليد...";
-  $("error-box").style.display   = "none";
-  $("result-area").style.display = "none";
-  $("empty").style.display       = "none";
-  $("loading-msg").style.display = "block";
-  $("hint").textContent          = "";
-
-  const fullPrompt = `${SYSTEM}\n\nالموضوع: "${topic}"\n${TYPE_INSTRUCTIONS[currentType]}\nالشرح الثقافي: باللغة ${currentLang} في 80-100 كلمة.\nالمحتوى العربي: 150-180 كلمة.`;
+  $("gen-btn").disabled     = true;
+  $("gen-btn").textContent  = "⏳  جاري التوليد...";
+  $("error-box").style.display    = "none";
+  $("result-area").style.display  = "none";
+  $("empty").style.display        = "none";
+  $("loading-msg").style.display  = "block";
+  $("hint").textContent           = "";
 
   try {
-    const res = await fetch(GEMINI_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key": apiKey,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: fullPrompt }] }],
-        generationConfig: { temperature: 0.8, maxOutputTokens: 1500 }
+        model:"claude-sonnet-4-6",
+        max_tokens:1000,
+        system: SYSTEM,
+        messages:[{role:"user", content:
+          `الموضوع: "${topic}"\n${TYPE_INSTRUCTIONS[currentType]}\nالشرح الثقافي: باللغة ${currentLang} في 80-100 كلمة.\nالمحتوى العربي: 150-180 كلمة.`
+        }]
       })
     });
 
-    const data = await res.json();
-    const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const clean = raw.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(clean);
+    const data   = await res.json();
+    const raw    = data.content?.[0]?.text || "";
+    const parsed = JSON.parse(raw.replace(/```json|```/g,"").trim());
 
     $("arabic-out").textContent  = parsed.arabic_content;
     $("explain-out").textContent = parsed.cultural_explanation;
@@ -256,7 +268,7 @@ async function generate(){
     $("result-area").style.display = "block";
     $("hint").textContent = "✦ غيّري اللغة وسيُعاد التوليد تلقائياً";
     hasResult = true;
-  } catch {
+  } catch(err) {
     $("error-box").textContent   = "حدث خطأ في التوليد. تأكدي من صحة الـ API Key وحاولي مرة أخرى.";
     $("error-box").style.display = "block";
     $("empty").style.display     = "block";
