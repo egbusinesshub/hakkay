@@ -11,11 +11,6 @@
     .logo{color:#B8860B;font-size:2rem;font-family:Georgia,serif;letter-spacing:.05em}
     .logo-sub{color:#90AABF;font-size:.68rem;letter-spacing:.25em;text-transform:uppercase;margin-top:.1rem}
     .tagline{color:#F5E7B8;font-size:.72rem;text-align:right;direction:rtl;line-height:1.6;max-width:280px}
-    .api-bar{background:#F0F4F8;border-bottom:1px solid #D8E2EC;padding:.75rem 1.5rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
-    .api-bar label{font-size:.78rem;font-weight:600;color:#1B3A5C;white-space:nowrap}
-    .api-bar input{flex:1;min-width:220px;padding:.45rem .75rem;border:1.5px solid #C8D8E8;border-radius:6px;font-size:.85rem;font-family:monospace;outline:none;color:#222;background:#fff}
-    .api-bar input:focus{border-color:#1B3A5C}
-    .api-note{font-size:.7rem;color:#888}
     .card{background:#fff;border-radius:14px;border:.5px solid #DDD8CE;padding:1.5rem;margin:1.25rem}
     label.step{display:block;font-size:.78rem;font-weight:600;color:#1B3A5C;letter-spacing:.08em;margin-bottom:.5rem}
     .input-row{display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem}
@@ -64,12 +59,6 @@
     في دولة 89% من سكانها لا يتحدثون العربية —<br>
     حكّاي المنصة الوحيدة التي تمنح مؤسساتها صوتاً عربياً أصيلاً
   </div>
-</div>
-
-<div class="api-bar">
-  <label for="api-key">🔑 Google Gemini API Key</label>
-  <input id="api-key" type="password" placeholder="AIzaSy..." />
-  <span class="api-note">لا يُحفظ ولا يُرسل لأي جهة — للجلسة الحالية فقط</span>
 </div>
 
 <div class="card">
@@ -138,6 +127,11 @@
 </div>
 
 <script>
+// ============================================================
+// ضعي الـ API Key بتاعك هنا بعد الشراء
+const API_KEY = "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";
+// ============================================================
+
 const SYSTEM = `أنتَ حكّاي — مساعد ذكاء اصطناعي متخصص في توليد المحتوى الإبداعي بالعربية الفصحى الأصيلة للمؤسسات الثقافية والتعليمية.
 
 قواعدك النحوية الأساسية (فؤاد نعمة - ملخص قواعد اللغة العربية):
@@ -159,14 +153,12 @@ const TYPE_INSTRUCTIONS = {
 - حوار مباشر بين الشخصيات
 - وصف حسي للمكان والزمان
 الأسلوب: سردي قصصي تراثي يشبه قصص ألف ليلة وليلة`,
-
   podcast:`اكتب سكريبت بودكاست ثقافي منظم يحتوي على:
 - مقدمة إذاعية: (أيها المستمعون، أهلاً بكم في...)
 - فقرة رئيسية بمعلومات ثقافية بأسلوب حيوي
 - انتقالات واضحة: (ومن هنا ننتقل... / والجدير بالذكر...)
 - خاتمة تطرح سؤالاً للمستمع
 الأسلوب: إذاعي خطابي مباشر على الهواء`,
-
   culture:`اكتب وصفاً ثقافياً أدبياً موثقاً يتضمن:
 - وصف حسي دقيق (الشكل، اللون، الصوت، الرائحة)
 - السياق التاريخي والحضاري
@@ -187,7 +179,6 @@ let hasResult   = false;
 let isLoading   = false;
 
 const $ = id => document.getElementById(id);
-
 $("topic").addEventListener("keydown", e => { if(e.key==="Enter") generate(); });
 
 function clearTopic(){
@@ -224,14 +215,8 @@ document.querySelectorAll(".lang-btn").forEach(btn => {
 });
 
 async function generate(){
-  const topic  = $("topic").value.trim();
-  const apiKey = $("api-key").value.trim();
+  const topic = $("topic").value.trim();
   if(!topic || isLoading) return;
-  if(!apiKey){
-    alert("يرجى إدخال Google Gemini API Key أولاً");
-    $("api-key").focus();
-    return;
-  }
 
   isLoading = true;
   $("gen-btn").disabled    = true;
@@ -242,22 +227,28 @@ async function generate(){
   $("loading-msg").style.display = "block";
   $("hint").textContent          = "";
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-  const fullPrompt = `${SYSTEM}\n\nالموضوع: "${topic}"\n${TYPE_INSTRUCTIONS[currentType]}\nالشرح الثقافي: باللغة ${currentLang} في 80-100 كلمة.\nالمحتوى العربي: 150-180 كلمة.`;
-
   try {
-    const res = await fetch(url, {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type":                              "application/json",
+        "x-api-key":                                 API_KEY,
+        "anthropic-version":                         "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: fullPrompt }] }],
-        generationConfig: { temperature: 0.8, maxOutputTokens: 1500 }
+        model:      "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system:     SYSTEM,
+        messages: [{
+          role:    "user",
+          content: `الموضوع: "${topic}"\n${TYPE_INSTRUCTIONS[currentType]}\nالشرح الثقافي: باللغة ${currentLang} في 80-100 كلمة.\nالمحتوى العربي: 150-180 كلمة.`
+        }]
       })
     });
 
     const data   = await res.json();
-    const raw    = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const raw    = data.content?.[0]?.text || "";
     const parsed = JSON.parse(raw.replace(/```json|```/g,"").trim());
 
     $("arabic-out").textContent  = parsed.arabic_content;
@@ -268,7 +259,7 @@ async function generate(){
     $("hint").textContent = "✦ غيّري اللغة وسيُعاد التوليد تلقائياً";
     hasResult = true;
   } catch {
-    $("error-box").textContent   = "حدث خطأ في التوليد. تأكدي من صحة الـ API Key وحاولي مرة أخرى.";
+    $("error-box").textContent   = "حدث خطأ في التوليد. يرجى المحاولة مرة أخرى.";
     $("error-box").style.display = "block";
     $("empty").style.display     = "block";
   } finally {

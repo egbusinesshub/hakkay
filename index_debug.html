@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>حكّاي — Debug Version</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,sans-serif;background:#FAF8F3;direction:ltr}
+    .header{background:#1B3A5C;padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem}
+    .logo{color:#B8860B;font-size:1.8rem;font-family:Georgia,serif}
+    .api-bar{background:#F0F4F8;border-bottom:1px solid #D8E2EC;padding:.75rem 1.5rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+    .api-bar label{font-size:.78rem;font-weight:600;color:#1B3A5C}
+    .api-bar input{flex:1;min-width:220px;padding:.45rem .75rem;border:1.5px solid #C8D8E8;border-radius:6px;font-size:.85rem;font-family:monospace;outline:none}
+    .api-bar input:focus{border-color:#1B3A5C}
+    .card{background:#fff;border-radius:14px;border:.5px solid #DDD8CE;padding:1.5rem;margin:1.25rem}
+    input#topic{width:100%;padding:.7rem 1rem;border:1.5px solid #E0D9CC;border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;margin-bottom:1rem}
+    #gen-btn{width:100%;padding:.9rem;border-radius:8px;cursor:pointer;background:#1B3A5C;color:#fff;font-size:1rem;font-weight:600;border:none}
+    #gen-btn:disabled{background:#BCC4CC;cursor:not-allowed}
+    #debug-box{background:#1A1A2E;color:#00FF88;font-family:monospace;font-size:.78rem;padding:1rem;margin:1rem 1.25rem;border-radius:8px;white-space:pre-wrap;direction:ltr;display:none;max-height:300px;overflow-y:auto}
+    .error-box{background:#FFF0F0;border:1px solid #F5B0B0;border-radius:8px;padding:.9rem;color:#B00;margin:0 1.25rem .75rem;direction:rtl;font-size:.85rem;display:none}
+    .result-box{background:#1B3A5C;border-radius:12px;padding:1.5rem;margin:0 1.25rem 1rem;direction:rtl}
+    .result-box p{color:#E8F0F8;line-height:2;font-family:Georgia,serif;font-size:.95rem}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">حكّـاي</div>
+  <span style="color:#90AABF;font-size:.8rem">— Debug Version</span>
+</div>
+
+<div class="api-bar">
+  <label>🔑 Google Gemini API Key</label>
+  <input id="api-key" type="password" placeholder="AIzaSy..." />
+</div>
+
+<div class="card">
+  <input id="topic" placeholder="اكتبي موضوعاً مثل: خور دبي" />
+  <button id="gen-btn" onclick="generate()">✦ اختبار التوليد</button>
+</div>
+
+<div id="error-box" class="error-box"></div>
+<div id="debug-box"></div>
+<div id="result-box" class="result-box" style="display:none">
+  <p id="arabic-out"></p>
+</div>
+
+<script>
+const SYSTEM = `أنتَ حكّاي. أجب بـ JSON صرف فقط بلا markdown:
+{"arabic_content":"نص عربي قصير جداً هنا","cultural_explanation":"short explanation here"}`;
+
+const $ = id => document.getElementById(id);
+
+async function generate(){
+  const topic  = $("topic").value.trim();
+  const apiKey = $("api-key").value.trim();
+  if(!topic || !apiKey){ alert("أدخلي الـ Key والموضوع"); return; }
+
+  $("gen-btn").disabled = true;
+  $("gen-btn").textContent = "⏳ جاري...";
+  $("error-box").style.display  = "none";
+  $("debug-box").style.display  = "none";
+  $("result-box").style.display = "none";
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+  try {
+    const res  = await fetch(url, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `${SYSTEM}\n\nاكتب وصفاً ثقافياً قصيراً جداً عن: "${topic}"` }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 500 }
+      })
+    });
+
+    const data = await res.json();
+
+    $("debug-box").style.display = "block";
+    $("debug-box").textContent   = "STATUS: " + res.status + "\n\nRESPONSE:\n" + JSON.stringify(data, null, 2);
+
+    if(data.error){
+      $("error-box").textContent   = "❌ " + data.error.message + " (code: " + data.error.code + ")";
+      $("error-box").style.display = "block";
+      return;
+    }
+
+    const raw    = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const clean  = raw.replace(/```json|```/g,"").trim();
+    const parsed = JSON.parse(clean);
+
+    $("arabic-out").textContent   = parsed.arabic_content;
+    $("result-box").style.display = "block";
+
+  } catch(err){
+    $("debug-box").style.display = "block";
+    $("debug-box").textContent   = "CATCH ERROR:\n" + err.message;
+    $("error-box").textContent   = "❌ " + err.message;
+    $("error-box").style.display = "block";
+  } finally {
+    $("gen-btn").disabled    = false;
+    $("gen-btn").textContent = "✦ اختبار التوليد";
+  }
+}
+</script>
+</body>
+</html>
